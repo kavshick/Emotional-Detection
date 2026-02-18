@@ -9,10 +9,19 @@
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
 <body>
-    <div class="container">
-        <nav class="sidebar">
+    <div class="app-shell">
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3>AI Facial Recognition</h3>
+                <p>Emotion Intelligence Suite</p>
             </div>
             <ul>
                 <li><a href="/">Home</a></li>
@@ -25,15 +34,15 @@
                 <li><a href="/admin_panel">Admin Panel</a></li>
             </ul>
         </nav>
+
         <main class="main-content">
             <header class="topbar">
                 <h1>{% block header %}{% endblock %}</h1>
             </header>
-            <div class="content">
+            <div class="content page-enter">
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
