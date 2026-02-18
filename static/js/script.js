@@ -1,52 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    initializeMobileNavigation();
-    initializeLiveDetector();
-    initializeSessionReports();
-});
-
-function initializeMobileNavigation() {
-    const toggleButton = document.getElementById('mobile-nav-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('mobile-overlay');
-
-    if (!toggleButton || !sidebar || !overlay) {
-        return;
-    }
-
-    const closeMenu = () => {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        toggleButton.setAttribute('aria-expanded', 'false');
-    };
-
-    toggleButton.addEventListener('click', () => {
-        const isOpen = sidebar.classList.contains('open');
-        if (isOpen) {
-            closeMenu();
-            return;
-        }
-
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
-        toggleButton.setAttribute('aria-expanded', 'true');
-    });
-
-    overlay.addEventListener('click', closeMenu);
-    document.querySelectorAll('#sidebar a').forEach((link) => {
-        link.addEventListener('click', closeMenu);
-    });
-}
-
-function initializeLiveDetector() {
     const startStopBtn = document.getElementById('start-stop-btn');
     if (!startStopBtn) {
         return;
     }
 
     const video = document.getElementById('webcam');
-    const overlayCanvas = document.getElementById('face-mesh-overlay');
-    const overlayCtx = overlayCanvas.getContext('2d');
-    const recordingIndicator = document.querySelector('.recording-indicator');
+    const statusText = document.querySelector('.status-active'); // Assuming this exists or creates one
     const sessionIdDisplay = document.getElementById('session-id');
     const emotionDisplay = document.getElementById('detected-emotion');
     const confidenceDisplay = document.getElementById('confidence');
@@ -84,33 +43,16 @@ function initializeLiveDetector() {
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-            await video.play();
-
-            resizeOverlay();
-            await initializeFaceMesh();
-
-            const sessionRes = await fetch('/api/session/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            const sessionData = await sessionRes.json();
-            activeSessionId = sessionData.session_id;
-
             isSessionActive = true;
-            startStopBtn.textContent = 'Stop Session';
-            sessionIdDisplay.textContent = activeSessionId;
-
-            if (recordingIndicator) {
-                recordingIndicator.style.display = 'block';
-            }
-
-            await captureFrame();
-            captureInterval = setInterval(captureFrame, 5000);
-            requestAnimationFrame(processFaceMeshFrame);
-        } catch (error) {
-            console.error('Error starting session:', error);
-            alert('Could not start live session. Please allow webcam access and try again.');
+            startStopBtn.textContent = "Stop Session";
+            sessionIdDisplay.textContent = generateSessionId();
+            
+            // Start capturing frames
+            captureInterval = setInterval(captureFrame, 2000); // Every 2 seconds
+            
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access webcam. Please allow permissions.");
         }
     }
 
@@ -136,86 +78,18 @@ function initializeLiveDetector() {
         }
 
         isSessionActive = false;
-        activeSessionId = null;
-        startStopBtn.textContent = 'Start Session';
-        sessionIdDisplay.textContent = 'N/A';
-        emotionDisplay.textContent = 'N/A';
-        confidenceDisplay.textContent = 'N/A';
-        faceStatus.textContent = 'Waiting...';
-        hasFace = false;
-        overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-        if (recordingIndicator) {
-            recordingIndicator.style.display = 'none';
-        }
+        startStopBtn.textContent = "Start Session";
+        sessionIdDisplay.textContent = "N/A";
+        emotionDisplay.textContent = "N/A";
+        confidenceDisplay.textContent = "N/A";
     }
 
-    async function initializeFaceMesh() {
-        if (!window.FaceMesh) {
-            faceStatus.textContent = 'FaceMesh not loaded';
-            return;
-        }
-
-        if (!faceMesh) {
-            faceMesh = new window.FaceMesh({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-            });
-            faceMesh.setOptions({
-                maxNumFaces: 1,
-                refineLandmarks: true,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-            faceMesh.onResults(onFaceMeshResults);
-        }
-    }
-
-    function resizeOverlay() {
-        overlayCanvas.width = video.videoWidth || 640;
-        overlayCanvas.height = video.videoHeight || 480;
-    }
-
-    async function processFaceMeshFrame() {
-        if (!isSessionActive || !faceMesh || !video.srcObject) {
-            return;
-        }
-
-        resizeOverlay();
-        await faceMesh.send({ image: video });
-        requestAnimationFrame(processFaceMeshFrame);
-    }
-
-    function onFaceMeshResults(results) {
-        overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        hasFace = Boolean(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0);
-
-        if (!hasFace) {
-            faceStatus.textContent = 'No face detected';
-            return;
-        }
-
-        faceStatus.textContent = 'Face tracked';
-        const points = results.multiFaceLandmarks[0];
-
-        overlayCtx.fillStyle = 'rgba(87, 246, 195, 0.85)';
-        for (const point of points) {
-            const x = point.x * overlayCanvas.width;
-            const y = point.y * overlayCanvas.height;
-            overlayCtx.beginPath();
-            overlayCtx.arc(x, y, 1.5, 0, Math.PI * 2);
-            overlayCtx.fill();
-        }
+    function generateSessionId() {
+        return 'sess_' + Math.random().toString(36).substr(2, 9);
     }
 
     async function captureFrame() {
-        if (!isSessionActive || !activeSessionId || !video.videoWidth || !video.videoHeight) {
-            return;
-        }
-
-        if (!hasFace) {
-            faceStatus.textContent = 'No face to capture';
-            return;
-        }
+        if (!isSessionActive) return;
 
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
