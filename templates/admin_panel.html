@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block header %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-panel-container">
+    <h2>System Administration</h2>
+    <p>This page is reserved for administrative controls and system management tasks.</p>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>System Health</h3>
+            <p class="status-active">Operational</p>
+        </div>
+        <div class="card">
+            <h3>Pending Actions</h3>
+            <p>0</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
