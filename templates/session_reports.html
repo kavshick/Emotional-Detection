@@ -14,12 +14,18 @@
                 <th>Duration</th>
                 <th>Images Captured</th>
                 <th>Dominant Emotion</th>
-                <th></th>
+                <th>Status</th>
+                <th>Timeline</th>
             </tr>
         </thead>
-        <tbody id="session-reports-table">
-            <!-- Session data will be dynamically inserted here -->
-        </tbody>
+        <tbody id="session-reports-table"></tbody>
     </table>
+</div>
+
+<div class="chart-container session-timeline-panel" id="session-timeline-panel">
+    <h3>Session Emotion Timeline</h3>
+    <p id="timeline-session-id">Select a session to view emotion changes over time.</p>
+    <canvas id="session-emotion-chart"></canvas>
+    <div class="image-grid" id="timeline-image-grid"></div>
 </div>
 {% endblock %}
