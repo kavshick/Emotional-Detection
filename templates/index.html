@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>Live System Status</h3>
+        <p class="status-active">Active</p>
+    </div>
+    <div class="card">
+        <h3>Total Sessions Captured</h3>
+        <p id="total-sessions">0</p>
+    </div>
+    <div class="card">
+        <h3>Total Images Stored</h3>
+        <p id="total-images">0</p>
+    </div>
+    <div class="card">
+        <h3>Last Session Timestamp</h3>
+        <p id="last-session-timestamp">N/A</p>
+    </div>
+</div>
+
+<div class="quick-nav">
+    <a href="/live_detector" class="nav-card">
+        <h4>Start Detection</h4>
+        <p>Go to the live detector page to start a new session.</p>
+    </a>
+    <a href="/session_reports" class="nav-card">
+        <h4>View Reports</h4>
+        <p>Analyze the reports from previous sessions.</p>
+    </a>
+    <a href="/analytics_dashboard" class="nav-card">
+        <h4>Analytics</h4>
+        <p>Explore the analytics dashboard for expression insights.</p>
+    </a>
+    <a href="/image_archive" class="nav-card">
+        <h4>Image Archive</h4>
+        <p>Browse the stored images from all sessions.</p>
+    </a>
+</div>
+{% endblock %}

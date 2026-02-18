@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Session Reports{% endblock %}
+
+{% block header %}Session Reports{% endblock %}
+
+{% block content %}
+<div class="session-reports-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Images Captured</th>
+                <th>Dominant Emotion</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="session-reports-table">
+            <!-- Session data will be dynamically inserted here -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}

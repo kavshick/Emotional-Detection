@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}About Project{% endblock %}
+
+{% block header %}About Project{% endblock %}
+
+{% block content %}
+<div class="about-project-container">
+    <div class="info-section">
+        <h2>Problem Statement</h2>
+        <p>The project aims to create a system that can recognize human facial expressions in real-time and provide analytics on the emotional state of individuals over a session. This can be used in various fields like mental health, education, and marketing.</p>
+    </div>
+    <div class="info-section">
+        <h2>Solution Overview</h2>
+        <p>We have developed a web-based application that captures video from a webcam, detects faces, and recognizes the facial expressions using a pre-trained deep learning model. The application then stores this data and provides a dashboard for analytics.</p>
+    </div>
+    <div class="info-section">
+        <h2>Tech Stack</h2>
+        <ul>
+            <li>Python</li>
+            <li>OpenCV</li>
+            <li>PySpark</li>
+            <li>ANN</li>
+            <li>Firebase</li>
+            <li>Firestore</li>
+            <li>TensorFlow</li>
+        </ul>
+    </div>
+    <div class="info-section">
+        <h2>Use Cases</h2>
+        <ul>
+            <li>Mental health monitoring</li>
+            <li>Interview analysis</li>
+            <li>Student engagement</li>
+            <li>Workplace productivity</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

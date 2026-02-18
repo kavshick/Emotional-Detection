@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Detector{% endblock %}
+
+{% block header %}Live Detector{% endblock %}
+
+{% block content %}
+<div class="live-detector-container">
+    <div class="webcam-feed">
+        <video id="webcam" autoplay></video>
+        <div id="bounding-box"></div>
+        <div class="recording-indicator"></div>
+    </div>
+    <div class="detector-controls">
+        <button id="start-stop-btn">Start Session</button>
+        <div class="session-info">
+            <p>Session ID: <span id="session-id">N/A</span></p>
+            <p>Capture Interval: <span id="capture-interval">2s</span></p>
+        </div>
+        <div class="expression-info">
+            <p>Detected Emotion: <span id="detected-emotion">N/A</span></p>
+            <p>Confidence: <span id="confidence">N/A</span></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
