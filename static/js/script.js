@@ -1,63 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
-    initializeMobileNavigation();
-    initializeLiveDetector();
-    initializeSessionReports();
-});
-
-function initializeMobileNavigation() {
-    const toggleButton = document.getElementById('mobile-nav-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('mobile-overlay');
-
-    if (!toggleButton || !sidebar || !overlay) {
-        return;
-    }
-
-    const closeMenu = () => {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        toggleButton.setAttribute('aria-expanded', 'false');
-    };
-
-    const openMenu = () => {
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
-        toggleButton.setAttribute('aria-expanded', 'true');
-    };
-
-    toggleButton.addEventListener('click', () => {
-        const isOpen = sidebar.classList.contains('open');
-        if (isOpen) {
-            closeMenu();
-            return;
-        }
-
-        openMenu();
-    });
-
-    overlay.addEventListener('click', closeMenu);
-
-    document.querySelectorAll('#sidebar a').forEach((link) => {
-        link.addEventListener('click', closeMenu);
-    });
-}
-
-function initializeLiveDetector() {
     const startStopBtn = document.getElementById('start-stop-btn');
     if (!startStopBtn) {
         return;
     }
 
     const video = document.getElementById('webcam');
-    const recordingIndicator = document.querySelector('.recording-indicator');
+    const statusText = document.querySelector('.status-active'); // Assuming this exists or creates one
     const sessionIdDisplay = document.getElementById('session-id');
     const emotionDisplay = document.getElementById('detected-emotion');
     const confidenceDisplay = document.getElementById('confidence');
+    const faceStatus = document.getElementById('face-status');
+    const modelStatus = document.getElementById('model-status');
 
     let stream = null;
     let activeSessionId = null;
     let isSessionActive = false;
     let captureInterval = null;
+    let faceMesh = null;
+    let hasFace = false;
+
+    fetch('/api/model_status')
+        .then((r) => r.json())
+        .then((data) => {
+            modelStatus.textContent = data.yolo_ready
+                ? 'YOLO + FaceMesh active'
+                : 'FaceMesh active (YOLO fallback unavailable)';
+        })
+        .catch(() => {
+            modelStatus.textContent = 'FaceMesh active (model status unavailable)';
+        });
 
     startStopBtn.addEventListener('click', async () => {
         if (!isSessionActive) {
@@ -72,28 +43,16 @@ function initializeLiveDetector() {
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-
-            const sessionRes = await fetch('/api/session/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            const sessionData = await sessionRes.json();
-            activeSessionId = sessionData.session_id;
-
             isSessionActive = true;
-            startStopBtn.textContent = 'Stop Session';
-            sessionIdDisplay.textContent = activeSessionId;
-
-            if (recordingIndicator) {
-                recordingIndicator.style.display = 'block';
-            }
-
-            await captureFrame();
-            captureInterval = setInterval(captureFrame, 5000);
-        } catch (error) {
-            console.error('Error starting session:', error);
-            alert('Could not start live session. Please allow webcam access and try again.');
+            startStopBtn.textContent = "Stop Session";
+            sessionIdDisplay.textContent = generateSessionId();
+            
+            // Start capturing frames
+            captureInterval = setInterval(captureFrame, 2000); // Every 2 seconds
+            
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access webcam. Please allow permissions.");
         }
     }
 
@@ -119,21 +78,18 @@ function initializeLiveDetector() {
         }
 
         isSessionActive = false;
-        activeSessionId = null;
-        startStopBtn.textContent = 'Start Session';
-        sessionIdDisplay.textContent = 'N/A';
-        emotionDisplay.textContent = 'N/A';
-        confidenceDisplay.textContent = 'N/A';
+        startStopBtn.textContent = "Start Session";
+        sessionIdDisplay.textContent = "N/A";
+        emotionDisplay.textContent = "N/A";
+        confidenceDisplay.textContent = "N/A";
+    }
 
-        if (recordingIndicator) {
-            recordingIndicator.style.display = 'none';
-        }
+    function generateSessionId() {
+        return 'sess_' + Math.random().toString(36).substr(2, 9);
     }
 
     async function captureFrame() {
-        if (!isSessionActive || !activeSessionId || !video.videoWidth || !video.videoHeight) {
-            return;
-        }
+        if (!isSessionActive) return;
 
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
