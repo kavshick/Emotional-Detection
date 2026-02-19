@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Play, Square, Loader2, Camera as CameraIcon, Cpu, ScanFace, Activity } from 'lucide-react';
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
-import anime from 'animejs/lib/anime.es.js';
+import gsap from 'gsap';
 
 const LiveDetector = () => {
     const videoRef = useRef(null);
@@ -25,13 +25,12 @@ const LiveDetector = () => {
     // Animate Confidence Bar
     useEffect(() => {
         if (barRef.current) {
-            anime({
-                targets: barRef.current,
+            gsap.to(barRef.current, {
                 width: `${Math.max(5, confidence * 100)}%`,
                 backgroundColor: confidence > 0.8 ? '#00f0ff' : confidence > 0.5 ? '#7000ff' : '#ff0099',
                 boxShadow: confidence > 0.8 ? '0 0 20px #00f0ff' : 'none',
-                easing: 'easeOutElastic(1, .8)',
-                duration: 800
+                duration: 0.8,
+                ease: "elastic.out(1, 0.8)"
             });
         }
     }, [confidence]);

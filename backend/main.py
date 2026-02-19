@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import cv2
+import boto3  # Import AWS SDK
 import numpy as np
 from collections import Counter
 from datetime import datetime, timezone
@@ -9,6 +10,9 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env if present
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -24,6 +28,42 @@ FACE_CASCADE = cv2.CascadeClassifier(
 _DEEPFACE_REF = None
 _DEEPFACE_READY = None
 _DEEPFACE_ERROR = ""
+
+# AWS S3 Configuration
+S3_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
+S3_REGION = os.getenv("AWS_REGION", "us-east-1")
+try:
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=S3_REGION,
+    )
+except Exception as e:
+    print(f"Warning: Failed to initialize AWS S3 client: {e}")
+    s3_client = None
+
+def upload_to_s3(image_bytes, filename):
+    """
+    Uploads image bytes to S3 and returns the public URL.
+    """
+    if not s3_client or not S3_BUCKET_NAME:
+        print("S3 Client or Bucket Name not configured.")
+        return None
+
+    s3_key = f"session_captures/{filename}"
+    try:
+        s3_client.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=s3_key,
+            Body=image_bytes,
+            ContentType="image/jpeg",
+        )
+        return f"https://{S3_BUCKET_NAME}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
+    except Exception as e:
+        print(f"Error uploading to S3: {e}")
+        return None
+
 
 # Eagerly load DeepFace to avoid lazy loading issues during requests
 try:
@@ -262,8 +302,18 @@ def api_session_capture(session_id: str):
 
     capture_idx = len(session.get("captures", [])) + 1
     filename = f"{session_id}_{capture_idx:03d}.jpg"
-    file_path = CAPTURE_DIR / filename
-    file_path.write_bytes(image_bytes)
+    
+    # --- Upload to S3 if configured ---
+    image_url = None
+    if s3_client and S3_BUCKET_NAME:
+        image_url = upload_to_s3(image_bytes, filename)
+
+    # --- Fallback to Local Storage if S3 failed or not configured ---
+    if not image_url:
+        print("S3 upload unavailable, falling back to local storage.")
+        file_path = CAPTURE_DIR / filename
+        file_path.write_bytes(image_bytes)
+        image_url = f"/session_captures/{filename}"
 
     capture_record = {
         "timestamp": utc_iso_now(),
@@ -272,7 +322,7 @@ def api_session_capture(session_id: str):
         "emotion_source": emotion_source,
         "face_detected": bool(face_box),
         "face_box": face_box,
-        "image_path": f"/session_captures/{filename}",
+        "image_path": image_url,
     }
     session.setdefault("captures", []).append(capture_record)
     write_sessions(sessions)
@@ -337,7 +387,20 @@ def api_session_delete(session_id: str):
     # Remove associated images
     for capture in session.get("captures", []):
         img_path = capture.get("image_path", "")
-        if img_path.startswith("/session_captures/"):
+        
+        # 1. Handle S3 Deletion
+        if s3_client and S3_BUCKET_NAME and "amazonaws.com" in img_path:
+            try:
+                # Extract key from URL. Assuming URL ends with session_captures/filename.jpg
+                if "/session_captures/" in img_path:
+                    filename = img_path.split("/")[-1]
+                    s3_key = f"session_captures/{filename}"
+                    s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=s3_key)
+            except Exception as e:
+                print(f"Failed to delete S3 object {img_path}: {e}")
+
+        # 2. Handle Local Deletion (Fallback or old sessions)
+        elif img_path.startswith("/session_captures/"):
             filename = img_path.split("/")[-1]
             file_path = CAPTURE_DIR / filename
             try:
