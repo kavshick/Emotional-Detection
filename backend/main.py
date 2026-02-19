@@ -276,8 +276,13 @@ def api_session_start():
     return jsonify({"session_id": session_id})
 
 
-@app.route("/api/session/<session_id>/capture", methods=["POST"])
+@app.route("/api/session/<session_id>/capture", methods=["POST", "GET"])
 def api_session_capture(session_id: str):
+    if request.method == "GET":
+        # This handles cases where a browser or client mistakenly sends a GET request
+        # likely due to an image load attempt or misconfiguration.
+        return jsonify({"error": "Method Not Allowed. Use POST.", "detail": "Capture endpoint requires POST."}), 405
+
     payload = request.get_json(silent=True) or {}
     image_data = payload.get("image_data", "")
 

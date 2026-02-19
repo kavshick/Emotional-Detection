@@ -15,11 +15,11 @@ const NavItem = ({ to, icon: Icon, label }) => {
       to={to} 
       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
         isActive 
-          ? 'bg-secondary text-primary-foreground font-medium' 
-          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+          ? 'bg-primary/20 text-primary border border-primary/20 font-medium shadow-[0_0_15px_rgba(0,240,255,0.1)]' 
+          : 'text-muted-foreground hover:bg-white/5 hover:text-white transition-all duration-300'
       }`}
     >
-      <Icon size={20} />
+      <Icon size={20} className={isActive ? "animate-pulse" : ""} />
       <span>{label}</span>
     </Link>
   );
