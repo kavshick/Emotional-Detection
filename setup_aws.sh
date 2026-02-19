@@ -31,23 +31,39 @@ elif command -v yum &> /dev/null; then
     sudo yum install -y python3 python3-pip
 fi
 
-# 4. Create a Virtual Environment (Recommended)
+# 4. Create a Virtual Environment (Global)
 if [ ! -d "venv" ]; then
-    echo "Creating virtual environment 'venv'..."
+    echo "Creating global virtual environment 'venv'..."
     python3 -m venv venv
 fi
 
-# 5. Activate Virtual Environment
-echo "Activating virtual environment..."
+# 5. Activate Global Virtual Environment
+echo "Activating global virtual environment..."
 source venv/bin/activate
 
-# 6. Install Dependencies
-echo "Installing dependencies from requirements.txt..."
-# Using --no-cache-dir to save memory during installation
+# 6. Install Dependencies (Global)
+echo "Installing dependencies (Global runtime)..."
+pip install --upgrade pip
+pip install -r requirements.txt --no-cache-dir
+
+# 7. Setup Backend Environment
+echo "Setting up Backend environment..."
+cd backend
+
+if [ ! -d "venv" ]; then
+    echo "Creating backend virtual environment..."
+    python3 -m venv venv
+fi
+
+echo "Activating backend virtual environment..."
+source venv/bin/activate
+
+echo "Installing backend dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt --no-cache-dir
 
 echo "------------------------------------------------"
-echo "Setup complete! To activate the environment run:"
-echo "source venv/bin/activate"
+echo "Setup complete!"
+echo "Global venv: source venv/bin/activate"
+echo "Backend venv: source backend/venv/bin/activate"
 echo "------------------------------------------------"
