@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cyberpunk / Neon Theme */
+    --background: 240 10% 3.9%; /* #09090b - Very dark */
+    --foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+
+    /* Neon Cyan Primary */
+    --primary: 180 100% 50%; /* #00FFFF */
+    --primary-foreground: 240 5.9% 10%;
+
+    /* Deep Purple Secondary */
+    --secondary: 270 50% 15%; 
+    --secondary-foreground: 0 0% 98%;
+
+    /* Hot Pink Accent */
+    --accent: 330 80% 60%; 
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --ring: 180 100% 50%;
+    
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
